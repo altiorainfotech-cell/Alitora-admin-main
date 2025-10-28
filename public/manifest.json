@@ -1,0 +1,17 @@
+{
+  "name": "Admin Panel",
+  "short_name": "Admin Panel",
+  "description": "Admin panel for managing content and users",
+  "start_url": "/admin",
+  "display": "standalone",
+  "background_color": "#111827",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable any"
+    }
+  ]
+}
