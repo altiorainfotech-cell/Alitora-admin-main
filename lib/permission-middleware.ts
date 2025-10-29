@@ -18,7 +18,11 @@ export async function checkPermission(
   action: PermissionAction = 'read'
 ): Promise<{ authorized: boolean; user?: AuthenticatedUser; error?: string }> {
   try {
-    const token = await getToken({ req: request });
+    const token = await getToken({ 
+      req: request,
+      secret: process.env.NEXTAUTH_SECRET,
+      cookieName: process.env.NODE_ENV === 'production' ? '__Secure-next-auth.session-token' : 'next-auth.session-token'
+    });
     
     if (!token || !token.userId) {
       return { authorized: false, error: 'Not authenticated' };

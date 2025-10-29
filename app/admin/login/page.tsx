@@ -274,9 +274,8 @@ function LoginForm() {
               )}
             </button>
 
-            {/* Links */}
-            <div className="text-center space-y-4">
-              {/* Demo Credentials */}
+            {/* Demo Credentials */}
+            <div className="text-center mt-6">
               <div className="p-4 rounded-lg bg-slate-800/50 border border-slate-700/50">
                 <p className="text-xs text-slate-300 mb-2 font-medium">Demo Credentials:</p>
                 <div className="text-xs text-slate-400 space-y-1">
