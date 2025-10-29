@@ -120,22 +120,32 @@ export async function middleware(request: NextRequest) {
   // Handle admin route protection
   if (pathname.startsWith('/admin') && 
       !pathname.startsWith('/admin/login') && 
+      !pathname.startsWith('/admin/forgot-password') &&
+      !pathname.startsWith('/admin/reset-password') &&
       !pathname.startsWith('/api/auth')) {
     
     try {
       const token = await getToken({ 
         req: request, 
-        secret: process.env.NEXTAUTH_SECRET 
+        secret: process.env.NEXTAUTH_SECRET,
+        cookieName: process.env.NODE_ENV === 'production' ? '__Secure-next-auth.session-token' : 'next-auth.session-token'
       })
 
+      console.log('Middleware - checking token for path:', pathname)
+      console.log('Middleware - token exists:', !!token)
+      
       if (!token) {
+        console.log('Middleware - no token, redirecting to login')
         return NextResponse.redirect(new URL('/admin/login', request.url))
       }
 
       // Check if user account is active
       if (token.status !== 'active') {
+        console.log('Middleware - inactive user, redirecting to login')
         return NextResponse.redirect(new URL('/admin/login?error=account-disabled', request.url))
       }
+      
+      console.log('Middleware - token valid, allowing access')
       
       // Add user info to request headers for downstream use
       const requestHeaders = new Headers(request.headers)
@@ -149,6 +159,7 @@ export async function middleware(request: NextRequest) {
         }
       })
     } catch (error) {
+      console.error('Middleware - token verification error:', error)
       // Invalid token, redirect to login
       return NextResponse.redirect(new URL('/admin/login?error=invalid-token', request.url))
     }
@@ -159,13 +170,18 @@ export async function middleware(request: NextRequest) {
     try {
       const token = await getToken({ 
         req: request, 
-        secret: process.env.NEXTAUTH_SECRET 
+        secret: process.env.NEXTAUTH_SECRET,
+        cookieName: process.env.NODE_ENV === 'production' ? '__Secure-next-auth.session-token' : 'next-auth.session-token'
       })
       
+      console.log('Middleware - login page, checking existing token:', !!token)
+      
       if (token && token.status === 'active') {
+        console.log('Middleware - user already authenticated, redirecting to dashboard')
         return NextResponse.redirect(new URL('/admin', request.url))
       }
     } catch (error) {
+      console.error('Middleware - login page token check error:', error)
       // Invalid token, allow access to login page
     }
   }

@@ -68,6 +68,18 @@ export const authOptions: NextAuthOptions = {
   jwt: {
     maxAge: 30 * 24 * 60 * 60,
   },
+  cookies: {
+    sessionToken: {
+      name: process.env.NODE_ENV === 'production' ? '__Secure-next-auth.session-token' : 'next-auth.session-token',
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+        domain: process.env.NODE_ENV === 'production' ? '.altiorainfotech.com' : undefined
+      }
+    }
+  },
   callbacks: {
     async jwt({ token, user }) {
       // JWT callback processed
@@ -108,6 +120,6 @@ export const authOptions: NextAuthOptions = {
     signOut: "/admin/login",
     error: "/admin/login",
   },
-  debug: false,
+  debug: process.env.NODE_ENV === 'development',
   secret: process.env.NEXTAUTH_SECRET,
 }
