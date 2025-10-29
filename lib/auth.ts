@@ -80,6 +80,7 @@ export const authOptions: NextAuthOptions = {
       }
     }
   },
+  useSecureCookies: process.env.NODE_ENV === 'production',
   callbacks: {
     async jwt({ token, user }) {
       // JWT callback processed

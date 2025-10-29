@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, Suspense } from 'react'
-import { signIn, getSession } from 'next-auth/react'
+import { useState, Suspense, useEffect } from 'react'
+import { signIn, getSession, useSession } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -17,13 +17,44 @@ function LoginForm() {
   const searchParams = useSearchParams()
   const callbackUrl = searchParams.get('callbackUrl') || '/admin'
   const errorParam = searchParams.get('error')
+  const { data: session, status } = useSession()
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (status === 'authenticated' && session) {
+      console.log('User already authenticated, redirecting to:', callbackUrl)
+      window.location.href = callbackUrl
+    }
+  }, [session, status, callbackUrl])
+
+  // Show loading while checking session
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center p-4">
+        <div className="text-white text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-4"></div>
+          <p>Checking authentication...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Show loading while redirecting authenticated user
+  if (status === 'authenticated') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center p-4">
+        <div className="text-white text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-4"></div>
+          <p>Redirecting...</p>
+        </div>
+      </div>
+    )
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
     setError('')
-
-    // Login attempt initiated
 
     try {
       const result = await signIn('credentials', {
@@ -37,44 +68,74 @@ function LoginForm() {
       if (result?.error) {
         console.error('SignIn error:', result.error)
         setError('Invalid email or password')
-      } else if (result?.ok) {
+        setIsLoading(false)
+        return
+      }
+
+      if (result?.ok) {
         console.log('SignIn successful, logging activity...')
         
+        // Keep loading state active during redirect process
+        // Don't call setIsLoading(false) here
+        
+        // Log login activity (non-blocking)
         try {
-          // Get CSRF token from cookie
           const csrfToken = document.cookie
             .split('; ')
             .find(row => row.startsWith('csrf-token='))
             ?.split('=')[1];
             
-          const logResponse = await fetch('/api/auth/login', {
+          fetch('/api/auth/login', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
               ...(csrfToken && { 'x-csrf-token': csrfToken })
             }
+          }).catch(logError => {
+            console.error('Failed to log login activity:', logError)
           })
-          console.log('Activity log response:', logResponse.status)
         } catch (logError) {
           console.error('Failed to log login activity:', logError)
         }
 
-        console.log('Getting session...')
-        const session = await getSession()
-        console.log('Session:', session)
+        // Wait for session to be established, then redirect
+        console.log('Authentication successful, waiting for session...')
         
-        if (session) {
-          console.log('Redirecting to:', callbackUrl)
-          router.push(callbackUrl)
-          router.refresh()
-        } else {
-          console.error('No session found after login')
-          setError('Login failed - no session created')
+        // Poll for session availability before redirecting
+        let attempts = 0
+        const maxAttempts = 15 // Increased attempts for better reliability
+        
+        const checkSessionAndRedirect = async () => {
+          attempts++
+          try {
+            const session = await getSession()
+            if (session) {
+              console.log('Session confirmed, redirecting to:', callbackUrl)
+              // Force a hard redirect to ensure middleware picks up the session
+              window.location.replace(callbackUrl)
+              return
+            }
+          } catch (error) {
+            console.error('Session check error:', error)
+          }
+          
+          if (attempts < maxAttempts) {
+            setTimeout(checkSessionAndRedirect, 150) // Slightly longer interval
+          } else {
+            console.log('Max attempts reached, forcing redirect anyway')
+            // Even if session check fails, try the redirect - middleware will handle it
+            window.location.replace(callbackUrl)
+          }
         }
-      } else {
-        console.error('Unexpected signIn result:', result)
-        setError('Login failed - unexpected response')
+        
+        // Start checking for session after a brief delay to allow NextAuth to set cookies
+        setTimeout(checkSessionAndRedirect, 300)
+        
+        return
       }
+
+      console.error('Unexpected signIn result:', result)
+      setError('Login failed - unexpected response')
     } catch (error) {
       console.error('Login error:', error)
       setError('An error occurred. Please try again.')
@@ -112,6 +173,8 @@ function LoginForm() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Disable form during loading */}
+            <fieldset disabled={isLoading}>
             {/* Email Field */}
             <div className="space-y-2">
               <label htmlFor="email" className="text-sm font-medium text-slate-200">
@@ -204,7 +267,7 @@ function LoginForm() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  Signing in...
+                  Authenticating...
                 </>
               ) : (
                 'Sign In'
@@ -229,6 +292,7 @@ function LoginForm() {
                 </div>
               </div>
             </div>
+            </fieldset>
           </form>
         </div>
       </div>

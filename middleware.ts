@@ -136,7 +136,12 @@ export async function middleware(request: NextRequest) {
       
       if (!token) {
         console.log('Middleware - no token, redirecting to login')
-        return NextResponse.redirect(new URL('/admin/login', request.url))
+        const loginUrl = new URL('/admin/login', request.url)
+        // Add current path as callback URL for post-login redirect
+        if (pathname !== '/admin') {
+          loginUrl.searchParams.set('callbackUrl', pathname)
+        }
+        return NextResponse.redirect(loginUrl)
       }
 
       // Check if user account is active
@@ -178,7 +183,8 @@ export async function middleware(request: NextRequest) {
       
       if (token && token.status === 'active') {
         console.log('Middleware - user already authenticated, redirecting to dashboard')
-        return NextResponse.redirect(new URL('/admin', request.url))
+        const callbackUrl = request.nextUrl.searchParams.get('callbackUrl') || '/admin'
+        return NextResponse.redirect(new URL(callbackUrl, request.url))
       }
     } catch (error) {
       console.error('Middleware - login page token check error:', error)
