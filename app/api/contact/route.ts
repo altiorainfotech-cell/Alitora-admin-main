@@ -10,14 +10,19 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, email, countryCode, phoneNumber, message } = body;
+    const { name, firstName, lastName, email, country, countryCode, phoneCode, phoneNumber, purpose, message } = body;
 
     // Debug logging
     console.log('📥 Received contact form data:', {
       name,
+      firstName,
+      lastName,
       email,
+      country,
       countryCode,
+      phoneCode,
       phoneNumber,
+      purpose,
       message: message?.substring(0, 50) + '...'
     });
 
@@ -29,14 +34,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Prepare contact message data with explicit phone field handling
+    // Prepare contact message data with explicit field handling
     const contactData = {
       name: name.trim(),
+      firstName: firstName ? firstName.trim() : undefined,
+      lastName: lastName ? lastName.trim() : undefined,
       email: email.trim().toLowerCase(),
-      message: message.trim(),
-      // Explicitly include phone fields, even if undefined
+      country: country ? country.trim() : undefined,
       countryCode: countryCode ? countryCode.trim() : undefined,
-      phoneNumber: phoneNumber ? phoneNumber.trim() : undefined
+      phoneCode: phoneCode ? phoneCode.trim() : undefined,
+      phoneNumber: phoneNumber ? phoneNumber.trim() : undefined,
+      purpose: purpose ? purpose.trim() : undefined,
+      message: message.trim()
     };
 
     console.log('💾 Saving contact data:', contactData);
@@ -47,8 +56,13 @@ export async function POST(request: NextRequest) {
 
     console.log('✅ Saved contact message:', {
       id: contactMessage._id,
+      firstName: contactMessage.firstName,
+      lastName: contactMessage.lastName,
+      country: contactMessage.country,
       countryCode: contactMessage.countryCode,
-      phoneNumber: contactMessage.phoneNumber
+      phoneCode: contactMessage.phoneCode,
+      phoneNumber: contactMessage.phoneNumber,
+      purpose: contactMessage.purpose
     });
 
     return NextResponse.json(

@@ -24,9 +24,14 @@ import {
 interface ContactMessage {
   _id: string
   name: string
+  firstName?: string
+  lastName?: string
   email: string
+  country?: string
   countryCode?: string
+  phoneCode?: string
   phoneNumber?: string
+  purpose?: string
   message: string
   status: 'unread' | 'read' | 'replied'
   createdAt: string
@@ -153,13 +158,23 @@ export default function MessagesPage() {
     }
   }
 
-  const filteredMessages = messages.filter(message =>
-    message.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    message.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    message.message.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (message.phoneNumber && message.phoneNumber.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (message.countryCode && message.countryCode.toLowerCase().includes(searchTerm.toLowerCase()))
-  )
+  const filteredMessages = (messages || []).filter(message => {
+    if (!message || !searchTerm) return true;
+    
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      (message.name && message.name.toLowerCase().includes(searchLower)) ||
+      (message.firstName && message.firstName.toLowerCase().includes(searchLower)) ||
+      (message.lastName && message.lastName.toLowerCase().includes(searchLower)) ||
+      (message.email && message.email.toLowerCase().includes(searchLower)) ||
+      (message.country && message.country.toLowerCase().includes(searchLower)) ||
+      (message.phoneNumber && message.phoneNumber.toLowerCase().includes(searchLower)) ||
+      (message.countryCode && message.countryCode.toLowerCase().includes(searchLower)) ||
+      (message.phoneCode && message.phoneCode.toLowerCase().includes(searchLower)) ||
+      (message.purpose && message.purpose.toLowerCase().includes(searchLower)) ||
+      (message.message && message.message.toLowerCase().includes(searchLower))
+    );
+  })
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -252,7 +267,7 @@ export default function MessagesPage() {
                 <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white/40 w-5 h-5" />
                 <input
                   type="text"
-                  placeholder="Search by name, email, phone, or message content..."
+                  placeholder="Search by name, email, country, phone, purpose, or message content..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 focus:ring-2 focus:ring-[#44d1a1] focus:border-[#44d1a1]/50 backdrop-blur-md transition-all duration-200"
@@ -332,7 +347,7 @@ export default function MessagesPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3, delay: index * 0.05 }}
                   className={`p-6 hover:bg-white/[0.02] cursor-pointer transition-all duration-200 group ${
-                    message.status === 'unread' 
+                    (message.status || 'unread') === 'unread' 
                       ? 'bg-gradient-to-r from-[#3490f3]/10 to-[#44d1a1]/10 border-l-4 border-[#3490f3]' 
                       : ''
                   }`}
@@ -346,25 +361,37 @@ export default function MessagesPage() {
                             <User2 className="w-6 h-6 text-white" />
                           </div>
                           <div>
-                            <span className="font-semibold text-white text-lg">{message.name}</span>
-                            <p className="text-white/60 text-sm">{message.email}</p>
-                            {message.countryCode && message.phoneNumber && (
-                              <p className="text-white/50 text-sm">{message.countryCode} {message.phoneNumber}</p>
+                            <span className="font-semibold text-white text-lg">
+                              {message.firstName && message.lastName 
+                                ? `${message.firstName} ${message.lastName}` 
+                                : (message.name || 'Unknown')}
+                            </span>
+                            <p className="text-white/60 text-sm">{message.email || 'No email'}</p>
+                            {message.country && (
+                              <p className="text-white/50 text-sm">📍 {message.country}</p>
+                            )}
+                            {(message.phoneCode || message.countryCode) && message.phoneNumber && (
+                              <p className="text-white/50 text-sm">
+                                📞 {message.phoneCode || message.countryCode} {message.phoneNumber}
+                              </p>
+                            )}
+                            {message.purpose && (
+                              <p className="text-white/50 text-sm">🎯 {message.purpose}</p>
                             )}
                           </div>
                         </div>
                         <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium ${
-                          message.status === 'unread' 
+                          (message.status || 'unread') === 'unread' 
                             ? 'border-[#3490f3]/30 bg-[#3490f3]/10 text-[#3490f3]' 
-                            : message.status === 'replied'
+                            : (message.status || 'unread') === 'replied'
                             ? 'border-[#44d1a1]/30 bg-[#44d1a1]/10 text-[#44d1a1]'
                             : 'border-white/20 bg-white/5 text-white/70'
                         }`}>
                           <span className={`inline-block h-2 w-2 rounded-full ${
-                            message.status === 'unread' ? 'bg-[#3490f3]' : 
-                            message.status === 'replied' ? 'bg-[#44d1a1]' : 'bg-white/50'
+                            (message.status || 'unread') === 'unread' ? 'bg-[#3490f3]' : 
+                            (message.status || 'unread') === 'replied' ? 'bg-[#44d1a1]' : 'bg-white/50'
                           }`} />
-                          {message.status.toUpperCase()}
+                          {(message.status || 'unread').toUpperCase()}
                         </span>
                       </div>
                       <p className="text-white/80 text-base leading-relaxed mb-4 line-clamp-2">
@@ -480,17 +507,17 @@ export default function MessagesPage() {
                   </div>
                   <div className="flex items-center gap-3">
                     <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium backdrop-blur-md ${
-                      selectedMessage.status === 'unread' 
+                      (selectedMessage.status || 'unread') === 'unread' 
                         ? 'border-[#3490f3]/30 bg-[#3490f3]/10 text-[#3490f3]' 
-                        : selectedMessage.status === 'replied'
+                        : (selectedMessage.status || 'unread') === 'replied'
                         ? 'border-[#44d1a1]/30 bg-[#44d1a1]/10 text-[#44d1a1]'
                         : 'border-white/20 bg-white/5 text-white/70'
                     }`}>
                       <span className={`inline-block h-2 w-2 rounded-full ${
-                        selectedMessage.status === 'unread' ? 'bg-[#3490f3]' : 
-                        selectedMessage.status === 'replied' ? 'bg-[#44d1a1]' : 'bg-white/50'
+                        (selectedMessage.status || 'unread') === 'unread' ? 'bg-[#3490f3]' : 
+                        (selectedMessage.status || 'unread') === 'replied' ? 'bg-[#44d1a1]' : 'bg-white/50'
                       }`} />
-                      {selectedMessage.status.toUpperCase()}
+                      {(selectedMessage.status || 'unread').toUpperCase()}
                     </span>
                     <button
                       onClick={() => setSelectedMessage(null)}
@@ -513,24 +540,44 @@ export default function MessagesPage() {
                     >
                       <div className="flex items-center justify-between">
                         <span className="text-xs uppercase tracking-wider text-white/60">Message Content</span>
-                        {selectedMessage.status === "unread" ? (
+                        {(selectedMessage.status || 'unread') === "unread" ? (
                           <span className="inline-flex items-center gap-1 text-[11px] rounded-full bg-[#0f1f3a] border border-white/10 px-2 py-1">
                             <MailOpen className="h-3.5 w-3.5" /> unread
                           </span>
                         ) : null}
                       </div>
-                      <p className="mt-3 text-base leading-relaxed text-white/90 whitespace-pre-wrap">{selectedMessage.message}</p>
+                      <p className="mt-3 text-base leading-relaxed text-white/90 whitespace-pre-wrap">{selectedMessage.message || 'No message content'}</p>
                       
                       {/* Quick Meta */}
                       <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
                         <div className="flex items-center gap-2 text-white/70">
                           <User2 className="h-4 w-4" /> 
-                          <span className="truncate">{selectedMessage.name}</span>
+                          <span className="truncate">
+                            {selectedMessage.firstName && selectedMessage.lastName 
+                              ? `${selectedMessage.firstName} ${selectedMessage.lastName}` 
+                              : (selectedMessage.name || 'Unknown')}
+                          </span>
                         </div>
                         <div className="flex items-center gap-2 text-white/70">
                           <Clock className="h-4 w-4" /> 
                           <span>{formatDate(selectedMessage.createdAt)}</span>
                         </div>
+                        {selectedMessage.country && (
+                          <div className="flex items-center gap-2 text-white/70">
+                            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            </svg>
+                            <span className="truncate">{selectedMessage.country}</span>
+                          </div>
+                        )}
+                        {selectedMessage.purpose && (
+                          <div className="flex items-center gap-2 text-white/70">
+                            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            <span className="truncate">{selectedMessage.purpose}</span>
+                          </div>
+                        )}
                       </div>
                     </motion.div>
 
@@ -549,19 +596,40 @@ export default function MessagesPage() {
                           </div>
                           <div className="min-w-0">
                             <p className="text-[11px] uppercase text-white/50">Full Name</p>
-                            <p className="truncate text-sm">{selectedMessage.name}</p>
+                            <p className="truncate text-sm">
+                              {selectedMessage.firstName && selectedMessage.lastName 
+                                ? `${selectedMessage.firstName} ${selectedMessage.lastName}` 
+                                : (selectedMessage.name || 'Unknown')}
+                            </p>
                           </div>
                         </div>
+                        
                         <div className="group flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.03] p-3">
                           <div className="grid h-9 w-9 place-items-center rounded-lg bg-white/5">
                             <Mail className="h-5 w-5" />
                           </div>
                           <div className="min-w-0">
                             <p className="text-[11px] uppercase text-white/50">Email Address</p>
-                            <p className="truncate text-sm">{selectedMessage.email}</p>
+                            <p className="truncate text-sm">{selectedMessage.email || 'No email'}</p>
                           </div>
                         </div>
-                        {selectedMessage.countryCode && selectedMessage.phoneNumber && (
+                        
+                        {selectedMessage.country && (
+                          <div className="group flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.03] p-3">
+                            <div className="grid h-9 w-9 place-items-center rounded-lg bg-white/5">
+                              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                              </svg>
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-[11px] uppercase text-white/50">Country</p>
+                              <p className="truncate text-sm">{selectedMessage.country}</p>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {(selectedMessage.phoneCode || selectedMessage.countryCode) && selectedMessage.phoneNumber && (
                           <div className="group flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.03] p-3">
                             <div className="grid h-9 w-9 place-items-center rounded-lg bg-white/5">
                               <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -570,10 +638,27 @@ export default function MessagesPage() {
                             </div>
                             <div className="min-w-0">
                               <p className="text-[11px] uppercase text-white/50">Phone Number</p>
-                              <p className="truncate text-sm">{selectedMessage.countryCode} {selectedMessage.phoneNumber}</p>
+                              <p className="truncate text-sm">
+                                {selectedMessage.phoneCode || selectedMessage.countryCode} {selectedMessage.phoneNumber}
+                              </p>
                             </div>
                           </div>
                         )}
+                        
+                        {selectedMessage.purpose && (
+                          <div className="group flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.03] p-3">
+                            <div className="grid h-9 w-9 place-items-center rounded-lg bg-white/5">
+                              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                              </svg>
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-[11px] uppercase text-white/50">Purpose</p>
+                              <p className="truncate text-sm">{selectedMessage.purpose}</p>
+                            </div>
+                          </div>
+                        )}
+                        
                         <div className="group flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.03] p-3">
                           <div className="grid h-9 w-9 place-items-center rounded-lg bg-white/5">
                             <Clock className="h-5 w-5" />
@@ -606,7 +691,12 @@ export default function MessagesPage() {
                     <div className="flex gap-3">
                       <button
                         onClick={() => {
-                          window.location.href = `mailto:${selectedMessage.email}?subject=Re: Contact Form Message&body=Hi ${selectedMessage.name},%0D%0A%0D%0AThank you for your message:%0D%0A"${selectedMessage.message}"%0D%0A%0D%0A`
+                          const email = selectedMessage.email || '';
+                          const name = selectedMessage.firstName && selectedMessage.lastName 
+                            ? `${selectedMessage.firstName} ${selectedMessage.lastName}` 
+                            : (selectedMessage.name || 'there');
+                          const message = selectedMessage.message || '';
+                          window.location.href = `mailto:${email}?subject=Re: Contact Form Message&body=Hi ${name},%0D%0A%0D%0AThank you for your message:%0D%0A"${message}"%0D%0A%0D%0A`
                         }}
                         className="inline-flex items-center gap-2 rounded-xl border border-white/12 bg-white/5 px-4 py-2.5 text-sm font-semibold hover:border-white/20 transition"
                       >

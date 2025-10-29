@@ -3,9 +3,14 @@ import mongoose, { Schema, Document } from 'mongoose';
 // Interface for the ContactMessage document
 export interface IContactMessage extends Document {
   name: string;
+  firstName?: string;
+  lastName?: string;
   email: string;
+  country?: string;
   countryCode?: string;
+  phoneCode?: string;
   phoneNumber?: string;
+  purpose?: string;
   message: string;
   status: 'unread' | 'read' | 'replied';
   createdAt: Date;
@@ -20,6 +25,18 @@ const ContactMessageSchema: Schema<IContactMessage> = new Schema({
     trim: true,
     maxlength: 100
   },
+  firstName: {
+    type: String,
+    required: false,
+    trim: true,
+    maxlength: 50
+  },
+  lastName: {
+    type: String,
+    required: false,
+    trim: true,
+    maxlength: 50
+  },
   email: {
     type: String,
     required: true,
@@ -31,6 +48,12 @@ const ContactMessageSchema: Schema<IContactMessage> = new Schema({
       },
       message: 'Please enter a valid email address'
     }
+  },
+  country: {
+    type: String,
+    required: false,
+    trim: true,
+    maxlength: 100
   },
   countryCode: {
     type: String,
@@ -44,6 +67,12 @@ const ContactMessageSchema: Schema<IContactMessage> = new Schema({
       message: 'Please enter a valid country code (e.g., +1, +91)'
     }
   },
+  phoneCode: {
+    type: String,
+    required: false,
+    trim: true,
+    maxlength: 10
+  },
   phoneNumber: {
     type: String,
     required: false,
@@ -55,6 +84,12 @@ const ContactMessageSchema: Schema<IContactMessage> = new Schema({
       },
       message: 'Please enter a valid phone number'
     }
+  },
+  purpose: {
+    type: String,
+    required: false,
+    trim: true,
+    maxlength: 100
   },
   message: {
     type: String,
