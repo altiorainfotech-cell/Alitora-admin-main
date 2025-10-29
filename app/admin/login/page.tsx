@@ -276,13 +276,6 @@ function LoginForm() {
 
             {/* Links */}
             <div className="text-center space-y-4">
-              <Link
-                href="/admin/forgot-password"
-                className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
-              >
-                Forgot your password?
-              </Link>
-
               {/* Demo Credentials */}
               <div className="p-4 rounded-lg bg-slate-800/50 border border-slate-700/50">
                 <p className="text-xs text-slate-300 mb-2 font-medium">Demo Credentials:</p>
