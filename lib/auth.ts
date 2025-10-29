@@ -41,7 +41,7 @@ export const authOptions: NextAuthOptions = {
           }
 
           // Log successful login
-          await ActivityLogger.logLogin(user.email, user._id.toString())
+          await ActivityLogger.logLogin(user.email, user._id.toString(), user.name || user.email, user.role)
 
           const authResult = {
             id: user._id.toString(),

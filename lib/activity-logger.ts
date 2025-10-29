@@ -10,6 +10,9 @@ export interface ActivityLogData {
   details?: any
   imageId?: string
   userId?: string
+  userEmail?: string
+  userName?: string
+  userRole?: 'admin' | 'seo' | 'custom'
 }
 
 export class ActivityLogger {
@@ -17,17 +20,17 @@ export class ActivityLogger {
     try {
       // If no userId provided, try to get from session
       let userId = data.userId
-      let userEmail = ''
-      let userName = ''
-      let userRole: 'admin' | 'seo' | 'custom' = 'custom'
+      let userEmail = data.userEmail || ''
+      let userName = data.userName || ''
+      let userRole: 'admin' | 'seo' | 'custom' = data.userRole || 'custom'
 
       if (!userId) {
         const session = await getServerSession(authOptions)
         if (session?.user?.id) {
           userId = session.user.id
-          userEmail = session.user.email || ''
-          userName = session.user.name || session.user.email || ''
-          userRole = (session.user as any).role || 'custom'
+          userEmail = userEmail || session.user.email || ''
+          userName = userName || session.user.name || session.user.email || ''
+          userRole = userRole || (session.user as any).role || 'custom'
         }
       } else {
         // If userId is provided but other info is missing, try to get from session
@@ -44,6 +47,31 @@ export class ActivityLogger {
       if (!userId) {
         console.warn('Activity log attempted without user ID:', data.action)
         return null
+      }
+
+      // If we still don't have userEmail or userName, try to fetch from database
+      if (!userEmail || !userName) {
+        try {
+          const AdminUser = (await import('@/lib/models/AdminUser')).default
+          const user = await AdminUser.findById(userId).select('email name role')
+          if (user) {
+            userEmail = userEmail || user.email
+            userName = userName || user.name || user.email
+            userRole = userRole || user.role
+          }
+        } catch (dbError) {
+          console.warn('Could not fetch user details from database:', dbError)
+        }
+      }
+
+      // Final validation - if we still don't have required fields, use fallbacks
+      if (!userEmail) {
+        console.warn('Missing userEmail for activity log, using fallback')
+        userEmail = 'unknown@example.com'
+      }
+      if (!userName) {
+        console.warn('Missing userName for activity log, using fallback')
+        userName = userEmail
       }
 
       // Get IP address and user agent
@@ -166,12 +194,15 @@ export class ActivityLogger {
     })
   }
 
-  static async logLogin(userEmail: string, userId?: string) {
+  static async logLogin(userEmail: string, userId?: string, userName?: string, userRole?: 'admin' | 'seo' | 'custom') {
     return this.log({
       action: 'LOGIN_SUCCESS',
       category: 'auth',
       details: { userEmail },
-      userId
+      userId,
+      userEmail,
+      userName,
+      userRole
     })
   }
 
@@ -179,16 +210,21 @@ export class ActivityLogger {
     return this.log({
       action: 'LOGIN_FAILED',
       category: 'auth',
-      details: { userEmail }
+      details: { userEmail },
+      userEmail,
+      userName: userEmail // Use email as fallback for name
     })
   }
 
-  static async logLogout(userEmail: string, userId?: string) {
+  static async logLogout(userEmail: string, userId?: string, userName?: string, userRole?: 'admin' | 'seo' | 'custom') {
     return this.log({
       action: 'LOGOUT',
       category: 'auth',
       details: { userEmail },
-      userId
+      userId,
+      userEmail,
+      userName,
+      userRole
     })
   }
 
