@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Plus, X, Move, Type, FileText } from 'lucide-react'
 import { Button } from '@/lib/components/ui/Button'
 import { RichTextEditor } from './RichTextEditor'
-import DOMPurify from 'isomorphic-dompurify'
+import { sanitizeHtmlContent } from '@/lib/html-sanitizer'
 
 export interface ContentSection {
   id: string
@@ -256,7 +256,7 @@ export function DynamicContentSections({
                 {section.type === 'title' ? (
                   <div>{section.value || 'Untitled'}</div>
                 ) : (
-                  <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(section.value || '<p>No content</p>') }} />
+                  <div dangerouslySetInnerHTML={{ __html: sanitizeHtmlContent(section.value || '<p>No content</p>') }} />
                 )}
               </div>
             ))}

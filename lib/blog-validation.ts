@@ -1,5 +1,5 @@
 import { z, ZodIssue } from 'zod';
-import DOMPurify from 'isomorphic-dompurify';
+import { sanitizeHtmlContent, sanitizeTextContent } from './html-sanitizer';
 
 // Image item schema
 const imageItemSchema = z.object({
@@ -130,28 +130,7 @@ export const blogQuerySchema = z.object({
   author: z.string().trim().max(100, 'Author name is too long').optional()
 });
 
-// Sanitization functions
-export function sanitizeHtmlContent(content: string): string {
-  // Configure DOMPurify to allow common HTML tags for blog content
-  const cleanContent = DOMPurify.sanitize(content, {
-    ALLOWED_TAGS: [
-      'p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-      'ul', 'ol', 'li', 'blockquote', 'a', 'img', 'code', 'pre',
-      'table', 'thead', 'tbody', 'tr', 'th', 'td', 'div', 'span'
-    ],
-    ALLOWED_ATTR: [
-      'href', 'src', 'alt', 'title', 'class', 'id', 'target', 'rel'
-    ],
-    ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp|data):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i
-  });
-  
-  return cleanContent;
-}
-
-export function sanitizeTextContent(text: string): string {
-  // Remove HTML tags and sanitize plain text
-  return DOMPurify.sanitize(text, { ALLOWED_TAGS: [] });
-}
+// Note: sanitizeHtmlContent and sanitizeTextContent are now imported from html-sanitizer.ts
 
 export function generateSlug(title: string): string {
   return title
