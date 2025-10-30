@@ -14,7 +14,9 @@ import {
   X,
   MessageSquare,
   UserCheck,
-  Activity
+  Activity,
+  Globe,
+  Search
 } from 'lucide-react'
 import { canAccessPage } from '@/lib/permissions'
 import { IPermissions } from '@/lib/models/AdminUser'
@@ -28,6 +30,8 @@ const navigationItems = [
   { name: 'Admin Users', href: '/admin/users', icon: Users, permission: 'users' as keyof IPermissions },
   { name: 'Activity Logs', href: '/admin/activity-logs', icon: Activity, permission: 'activity' as keyof IPermissions },
   { name: 'Settings', href: '/admin/settings', icon: Settings, permission: 'settings' as keyof IPermissions },
+  { name: 'SEO Pages', href: '/admin/seo-pages', icon: Globe, permission: 'seo' as keyof IPermissions },
+{ name: 'Meta Management', href: '/admin/meta-management', icon: Search, permission: 'seo' as keyof IPermissions },
 ]
 
 export default function AdminSidebar() {
