@@ -1,28 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getToken } from 'next-auth/jwt';
 import { uploadToCloudinary } from '@/lib/cloudinary';
+import { requirePermission } from '@/lib/permission-middleware';
 
 export async function POST(request: NextRequest) {
   try {
-    // Check authentication
-    const token = await getToken({
-      req: request,
-      secret: process.env.NEXTAUTH_SECRET
-    });
-
-    if (!token) {
-      return NextResponse.json({
-        success: false,
-        error: 'Authentication required'
-      }, { status: 401 });
-    }
-
-    if (token.status !== 'active') {
-      return NextResponse.json({
-        success: false,
-        error: 'Account is disabled'
-      }, { status: 403 });
-    }
+    // Check authentication using the same method as other admin APIs
+    await requirePermission(request, 'blogs', 'write');
 
     // Parse form data
     const formData = await request.formData();
@@ -81,25 +64,8 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    // Check authentication
-    const token = await getToken({
-      req: request,
-      secret: process.env.NEXTAUTH_SECRET
-    });
-
-    if (!token) {
-      return NextResponse.json({
-        success: false,
-        error: 'Authentication required'
-      }, { status: 401 });
-    }
-
-    if (token.status !== 'active') {
-      return NextResponse.json({
-        success: false,
-        error: 'Account is disabled'
-      }, { status: 403 });
-    }
+    // Check authentication using the same method as other admin APIs
+    await requirePermission(request, 'blogs', 'write');
 
     const { searchParams } = new URL(request.url);
     const publicId = searchParams.get('publicId');
