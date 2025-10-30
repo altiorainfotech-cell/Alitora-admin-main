@@ -258,3 +258,92 @@ export const userQuerySchema = z.object({
 export type CreateUserInput = z.infer<typeof createUserSchema>
 export type UpdateUserInput = z.infer<typeof updateUserSchema>
 export type UserQueryInput = z.infer<typeof userQuerySchema>
+
+// SEO Management schemas
+export const seoPageSchema = z.object({
+  siteId: z.string()
+    .min(1, 'Site ID is required')
+    .max(50, 'Site ID too long')
+    .regex(/^[a-zA-Z0-9_-]+$/, 'Invalid site ID format')
+    .default('altiorainfotech'),
+  path: z.string()
+    .min(1, 'Path is required')
+    .max(500, 'Path too long')
+    .refine(path => path.startsWith('/') || path === 'home', 'Path must start with / or be "home"'),
+  slug: z.string()
+    .min(1, 'Slug is required')
+    .max(100, 'Slug too long')
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Slug must be URL-friendly (lowercase letters, numbers, and hyphens only)')
+    .transform(sanitizeString),
+  metaTitle: sanitizedString(1, 60),
+  metaDescription: sanitizedString(1, 160),
+  robots: z.string()
+    .default('index,follow')
+    .refine(robots => {
+      const validDirectives = ['index', 'noindex', 'follow', 'nofollow', 'archive', 'noarchive', 'snippet', 'nosnippet'];
+      const directives = robots.split(',').map(d => d.trim().toLowerCase());
+      return directives.every(directive => validDirectives.includes(directive));
+    }, 'Invalid robots directive'),
+  isCustom: z.boolean().default(false),
+  pageCategory: z.enum(['main', 'services', 'blog', 'about', 'contact', 'other']).default('other'),
+  openGraph: z.object({
+    title: sanitizedString(0, 60).optional(),
+    description: sanitizedString(0, 160).optional(),
+    image: z.string().url('Invalid OpenGraph image URL').optional()
+  }).optional(),
+  createdBy: z.string().min(1, 'Created by is required'),
+  updatedBy: z.string().min(1, 'Updated by is required')
+})
+
+export const updateSeoPageSchema = seoPageSchema.partial().extend({
+  updatedBy: z.string().min(1, 'Updated by is required')
+})
+
+export const seoPageQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+  search: z.string().max(100).optional(),
+  category: z.enum(['main', 'services', 'blog', 'about', 'contact', 'other']).optional(),
+  isCustom: z.coerce.boolean().optional(),
+  siteId: z.string().default('altiorainfotech')
+})
+
+export const redirectSchema = z.object({
+  siteId: z.string()
+    .min(1, 'Site ID is required')
+    .max(50, 'Site ID too long')
+    .regex(/^[a-zA-Z0-9_-]+$/, 'Invalid site ID format')
+    .default('altiorainfotech'),
+  from: z.string()
+    .min(1, 'From path is required')
+    .max(500, 'From path too long')
+    .transform(sanitizeString),
+  to: z.string()
+    .min(1, 'To path is required')
+    .max(500, 'To path too long')
+    .transform(sanitizeString),
+  statusCode: z.number()
+    .int('Status code must be an integer')
+    .min(300, 'Status code must be a redirect code')
+    .max(399, 'Status code must be a redirect code')
+    .default(301),
+  createdBy: z.string().min(1, 'Created by is required')
+})
+
+export const bulkSeoOperationSchema = z.object({
+  operation: z.enum(['update', 'delete', 'reset']),
+  paths: z.array(z.string().min(1)).min(1, 'At least one path is required').max(50, 'Too many paths'),
+  data: z.object({
+    metaTitle: sanitizedString(1, 60).optional(),
+    metaDescription: sanitizedString(1, 160).optional(),
+    robots: z.string().optional(),
+    pageCategory: z.enum(['main', 'services', 'blog', 'about', 'contact', 'other']).optional()
+  }).optional(),
+  updatedBy: z.string().min(1, 'Updated by is required')
+})
+
+export type SeoPageInput = z.infer<typeof seoPageSchema>
+export type UpdateSeoPageInput = z.infer<typeof updateSeoPageSchema>
+export type SeoPageQueryInput = z.infer<typeof seoPageQuerySchema>
+export type RedirectInput = z.infer<typeof redirectSchema>
+export type BulkSeoOperationInput = z.infer<typeof bulkSeoOperationSchema>
