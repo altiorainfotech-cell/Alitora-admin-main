@@ -12,7 +12,6 @@ export interface IPermissions {
   messages: 'none' | 'read' | 'write' | 'full';
   settings: 'none' | 'read' | 'write' | 'full';
   activity: 'none' | 'read' | 'write' | 'full';
-  seo: 'none' | 'read' | 'write' | 'full';
 }
 
 export interface IAdminUser extends Document {
@@ -43,8 +42,7 @@ const getDefaultPermissions = (role: 'admin' | 'seo' | 'custom'): IPermissions =
         users: 'full',
         messages: 'full',
         settings: 'full',
-        activity: 'full',
-        seo: 'full'
+        activity: 'full'
       };
     case 'seo':
       return {
@@ -54,8 +52,7 @@ const getDefaultPermissions = (role: 'admin' | 'seo' | 'custom'): IPermissions =
         users: 'none',
         messages: 'read',
         settings: 'none',
-        activity: 'read',
-        seo: 'full'
+        activity: 'read'
       };
     case 'custom':
       return {
@@ -65,8 +62,7 @@ const getDefaultPermissions = (role: 'admin' | 'seo' | 'custom'): IPermissions =
         users: 'none',
         messages: 'none',
         settings: 'none',
-        activity: 'none',
-        seo: 'none'
+        activity: 'none'
       };
     default:
       return getDefaultPermissions('custom');
@@ -118,8 +114,7 @@ const AdminUserSchema: Schema<IAdminUser> = new Schema({
     users: { type: String, enum: ['none', 'read', 'write', 'full'], default: 'none' },
     messages: { type: String, enum: ['none', 'read', 'write', 'full'], default: 'none' },
     settings: { type: String, enum: ['none', 'read', 'write', 'full'], default: 'none' },
-    activity: { type: String, enum: ['none', 'read', 'write', 'full'], default: 'none' },
-    seo: { type: String, enum: ['none', 'read', 'write', 'full'], default: 'none' }
+    activity: { type: String, enum: ['none', 'read', 'write', 'full'], default: 'none' }
   },
   lastLogin: {
     type: Date,

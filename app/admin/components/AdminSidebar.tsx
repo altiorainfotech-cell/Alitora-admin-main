@@ -14,9 +14,7 @@ import {
   X,
   MessageSquare,
   UserCheck,
-  Activity,
-  Globe,
-  Search
+  Activity
 } from 'lucide-react'
 import { canAccessPage } from '@/lib/permissions'
 import { IPermissions } from '@/lib/models/AdminUser'
@@ -29,10 +27,6 @@ const navigationItems = [
   { name: 'Messages', href: '/admin/messages', icon: MessageSquare, permission: 'messages' as keyof IPermissions },
   { name: 'Admin Users', href: '/admin/users', icon: Users, permission: 'users' as keyof IPermissions },
   { name: 'Activity Logs', href: '/admin/activity-logs', icon: Activity, permission: 'activity' as keyof IPermissions },
-
-  { name: 'SEO Pages', href: '/admin/seo-pages', icon: Globe, permission: 'seo' as keyof IPermissions },
-  { name: 'Meta Management', href: '/admin/meta-management', icon: Search, permission: 'seo' as keyof IPermissions },
-
   { name: 'Settings', href: '/admin/settings', icon: Settings, permission: 'settings' as keyof IPermissions },
 ]
 
@@ -40,14 +34,14 @@ export default function AdminSidebar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const pathname = usePathname()
   const { data: session } = useSession()
-
+  
   // Get user permissions
   const user = session?.user as any
   const userRole = user?.role as 'admin' | 'seo' | 'custom'
   const userPermissions = user?.permissions as IPermissions | undefined
-
+  
   // Filter navigation items based on permissions
-  const allowedNavigationItems = navigationItems.filter(item =>
+  const allowedNavigationItems = navigationItems.filter(item => 
     canAccessPage(userPermissions, userRole, item.permission)
   )
 
@@ -164,7 +158,7 @@ export default function AdminSidebar() {
                 </Link>
               )
             })}
-
+            
             {/* Show message if user has limited access */}
             {allowedNavigationItems.length < navigationItems.length && (
               <div className="px-3 py-2 text-xs text-slate-500 border-t border-slate-700/50 mt-4 pt-4">
