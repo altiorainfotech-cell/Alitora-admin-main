@@ -13,7 +13,9 @@ import {
   AlertCircle,
   CheckCircle,
   Info,
-  X
+  X,
+  TrendingUp,
+  Clock
 } from 'lucide-react'
 import { Button } from '@/lib/components/ui/Button'
 import { FormInput } from '@/lib/components/ui/FormInput'
@@ -22,6 +24,9 @@ import { FormTextarea } from '@/lib/components/ui/FormTextarea'
 import { LoadingSpinner } from '@/lib/components/ui/LoadingSpinner'
 import { useToast } from '@/lib/components/ui/Toast'
 import { PREDEFINED_PAGES, PredefinedPage, getPredefinedPageByPath } from '@/lib/data/predefined-pages'
+import { SEOAuditLogs } from '@/app/admin/components/seo/SEOAuditLogs'
+import { SitemapManager } from '@/app/admin/components/seo/SitemapManager'
+import { PerformanceDashboard } from '@/app/admin/components/seo/PerformanceDashboard'
 
 interface SEOFormData {
   path: string
@@ -71,6 +76,9 @@ export default function MetaManagementPage() {
   const [currentSEO, setCurrentSEO] = useState<SEOPageData | null>(null)
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [showAuditLogs, setShowAuditLogs] = useState(false)
+  const [showSitemapManager, setShowSitemapManager] = useState(false)
+  const [showPerformanceDashboard, setShowPerformanceDashboard] = useState(false)
   const toast = useToast()
   
   const [formData, setFormData] = useState<SEOFormData>({
@@ -231,15 +239,19 @@ export default function MetaManagementPage() {
     <div className="p-6 max-w-4xl mx-auto">
       {/* Enhanced Header */}
       <div className="mb-8">
-        <div className="flex items-center gap-4 mb-4">
-          <div className="w-14 h-14 bg-gradient-to-r from-purple-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
-            <Search className="w-7 h-7 text-white" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold text-white">Meta Management</h1>
-            <p className="text-slate-400 mt-1">
-              Edit SEO metadata for individual pages with live preview of search results appearance
-            </p>
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+          <div className="space-y-4">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 bg-gradient-to-r from-purple-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
+                <Search className="w-7 h-7 text-white" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold text-white">Meta Management</h1>
+                <p className="text-slate-400 mt-1">
+                  Edit SEO metadata for individual pages with live preview of search results appearance
+                </p>
+              </div>
+            </div>
           </div>
         </div>
         
@@ -280,6 +292,38 @@ export default function MetaManagementPage() {
               </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Action Buttons Section */}
+      <div className="mb-6">
+        <div className="flex flex-wrap gap-3 justify-center lg:justify-start">
+          <Button
+            onClick={() => setShowPerformanceDashboard(true)}
+            variant="secondary"
+            className="flex items-center gap-2 bg-slate-700/50 hover:bg-slate-700 border-slate-600/50 px-6 py-3 rounded-lg font-medium transition-all duration-200 shadow-lg hover:shadow-xl"
+          >
+            <TrendingUp className="w-4 h-4" />
+            Performance
+          </Button>
+          
+          <Button
+            onClick={() => setShowSitemapManager(true)}
+            variant="secondary"
+            className="flex items-center gap-2 bg-slate-700/50 hover:bg-slate-700 border-slate-600/50 px-6 py-3 rounded-lg font-medium transition-all duration-200 shadow-lg hover:shadow-xl"
+          >
+            <Globe className="w-4 h-4" />
+            Sitemap
+          </Button>
+          
+          <Button
+            onClick={() => setShowAuditLogs(true)}
+            variant="secondary"
+            className="flex items-center gap-2 bg-slate-700/50 hover:bg-slate-700 border-slate-600/50 px-6 py-3 rounded-lg font-medium transition-all duration-200 shadow-lg hover:shadow-xl"
+          >
+            <Clock className="w-4 h-4" />
+            Audit Logs
+          </Button>
         </div>
       </div>
 
@@ -615,6 +659,27 @@ export default function MetaManagementPage() {
             </div>
           )}
         </>
+      )}
+
+      {/* Audit Logs Modal */}
+      {showAuditLogs && (
+        <SEOAuditLogs
+          onClose={() => setShowAuditLogs(false)}
+        />
+      )}
+
+      {/* Sitemap Manager Modal */}
+      {showSitemapManager && (
+        <SitemapManager
+          onClose={() => setShowSitemapManager(false)}
+        />
+      )}
+
+      {/* Performance Dashboard Modal */}
+      {showPerformanceDashboard && (
+        <PerformanceDashboard
+          onClose={() => setShowPerformanceDashboard(false)}
+        />
       )}
 
       {/* Toast Notification */}
