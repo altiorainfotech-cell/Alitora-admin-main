@@ -1,6 +1,6 @@
 /**
  * Server-safe HTML sanitization utility
- * Alternative to isomorphic-dompurify to avoid jsdom ES module issues
+ * Provides XSS protection without external dependencies
  */
 
 // Simple HTML tag and attribute whitelist
