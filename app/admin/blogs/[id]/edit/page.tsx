@@ -17,7 +17,7 @@ import { useAuth } from '@/lib/hooks/useAuth'
 import { useAllCategories } from '@/lib/hooks/useCategories'
 import { validateBlogPostUpdate } from '@/lib/blog-validation'
 import Toast from '@/app/admin/components/Toast'
-import { sanitizeHtmlContent } from '@/lib/html-sanitizer'
+import DOMPurify from 'isomorphic-dompurify'
 
 
 
@@ -422,7 +422,7 @@ export default function EditBlogPostPage() {
 
             <div
               className="text-gray-100 mb-6"
-              dangerouslySetInnerHTML={{ __html: sanitizeHtmlContent(formData.content || '<p>No main content yet...</p>') }}
+              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(formData.content || '<p>No main content yet...</p>') }}
             />
 
 
