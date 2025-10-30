@@ -16,7 +16,7 @@ import { RichTextEditor } from '@/app/components/admin/RichTextEditor'
 import { useAuth } from '@/lib/hooks/useAuth'
 import { useAllCategories } from '@/lib/hooks/useCategories'
 import { validateBlogPostCreation, generateSlug } from '@/lib/blog-validation'
-import { sanitizeHtmlContent } from '@/lib/html-sanitizer'
+import DOMPurify from 'isomorphic-dompurify'
 
 
 
@@ -299,7 +299,7 @@ export default function NewBlogPostPage() {
             
             <div 
               className="text-gray-100 mb-6"
-              dangerouslySetInnerHTML={{ __html: sanitizeHtmlContent(formData.content || '<p>No main content yet...</p>') }}
+              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(formData.content || '<p>No main content yet...</p>') }}
             />
 
 
